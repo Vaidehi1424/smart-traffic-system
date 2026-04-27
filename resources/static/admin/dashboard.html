@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<title>Admin Dashboard</title>
+
+<link rel="stylesheet" href="/shared/layout.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/shared/api.js"></script>
+
+<!-- 🔥 VERY IMPORTANT: run auth BEFORE page loads -->
+<script>
+requireAuth("ADMIN");
+</script>
+
+</head>
+
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar"></div>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <h2>📊 Dashboard</h2>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h4>Total Locations</h4>
+        <p id="total">0</p>
+      </div>
+
+      <div class="stat-card">
+        <h4>Total Vehicles</h4>
+        <p id="vehicles">0</p>
+      </div>
+
+      <div class="stat-card">
+        <h4>Active Alerts</h4>
+        <p id="alerts">0</p>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="chart-box">
+      <h3>🚗 Vehicles Overview</h3>
+      <div style="height:350px;">
+        <canvas id="chart"></canvas>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+
+// 🔐 Protect page
+requireAuth("ADMIN");
+
+// 📌 Load sidebar
+fetch('/shared/sidebar.html')
+.then(res => res.text())
+.then(html => {
+  document.getElementById("sidebar").innerHTML = html;
+});
+
+// 📊 Chart
+let chart;
+
+// 🚀 Load dashboard AFTER page ready
+window.onload = async function () {
+
+  const res = await Dashboard.getStats();
+
+  if (!res || !res.data) {
+    console.error("Dashboard API failed");
+    return;
+  }
+
+  const d = res.data;
+
+  // Stats
+  document.getElementById("total").innerText = d.totalLocations || 0;
+  document.getElementById("vehicles").innerText = d.totalVehicles || 0;
+  document.getElementById("alerts").innerText = d.totalAlerts || 0;
+
+  const labels = (d.chartData || []).map(x => x.location);
+  const values = (d.chartData || []).map(x => x.vehicles);
+
+  if (chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("chart"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Vehicles",
+        data: values,
+        backgroundColor: "#3b82f6"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+};
+
+</script>
+
+</body>
+</html>
