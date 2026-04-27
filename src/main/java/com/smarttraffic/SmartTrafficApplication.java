@@ -20,7 +20,7 @@ public class SmartTrafficApplication {
     /**
      * Seeds default users and sample traffic data on first startup.
      */
-   /* @Bean
+    @Bean
     CommandLineRunner seedData(
             UserRepository userRepo,
             TrafficDataRepository trafficRepo,
@@ -100,5 +100,5 @@ public class SmartTrafficApplication {
                 System.out.println("✅ Alerts seeded: 5 alerts");
             }
         };
-    }*/
+    }
 }
