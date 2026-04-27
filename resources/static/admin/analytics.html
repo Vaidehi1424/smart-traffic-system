@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<title>Analytics</title>
+
+<link rel="stylesheet" href="/shared/layout.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/shared/api.js"></script>
+
+</head>
+
+<body>
+
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <main class="main">
+
+    <!-- 🔥 TOPBAR -->
+    <div class="topbar">
+      <h2>📊 Traffic Analytics</h2>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h4>Total Locations</h4>
+        <p id="total"></p>
+      </div>
+
+      <div class="stat-card">
+        <h4>High Congestion</h4>
+        <p id="high"></p>
+      </div>
+
+      <div class="stat-card">
+        <h4>Low Congestion</h4>
+        <p id="low"></p>
+      </div>
+    </div>
+
+    <!-- BAR CHART -->
+    <div class="chart-box">
+      <h3>🚗 Top 10 Locations</h3>
+      <div style="height:400px;">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+
+    <!-- PIE CHART -->
+    <div class="chart-box">
+      <h3>🔴 Congestion Distribution</h3>
+      <div style="height:300px;">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+requireAuth('ADMIN');
+
+// load sidebar
+fetch('/shared/sidebar.html')
+.then(r => r.text())
+.then(d => document.getElementById("sidebar").innerHTML = d);
+
+let barInstance;
+let pieInstance;
+
+async function load() {
+
+  const res = await Traffic.getAll();
+  const allData = res?.data || [];
+
+  const data = [...allData]
+    .sort((a,b) => b.vehicleCount - a.vehicleCount)
+    .slice(0,10);
+
+  document.getElementById("total").innerText = allData.length;
+
+  const high = allData.filter(x => x.congestionLevel === "HIGH").length;
+  const low  = allData.filter(x => x.congestionLevel === "LOW").length;
+
+  document.getElementById("high").innerText = high;
+  document.getElementById("low").innerText = low;
+
+  const labels = data.map(x => x.location);
+  const values = data.map(x => x.vehicleCount);
+
+  if (barInstance) barInstance.destroy();
+
+  barInstance = new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Vehicles",
+        data: values,
+        backgroundColor: "#3b82f6"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+
+  if (pieInstance) pieInstance.destroy();
+
+  pieInstance = new Chart(document.getElementById("pieChart"), {
+    type: "doughnut",
+    data: {
+      labels: ["High", "Low"],
+      datasets: [{
+        data: [high, low],
+        backgroundColor: ["#ef4444", "#22c55e"]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+}
+
+setInterval(load, 5000);
+load();
+
+</script>
+
+</body>
+</html>

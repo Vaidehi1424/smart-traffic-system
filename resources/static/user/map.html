@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<title>User Map</title>
+
+<link rel="stylesheet" href="/shared/layout.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="/shared/api.js"></script>
+
+<style>
+.map-container {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.search-bar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.search-bar input {
+  width: 300px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+}
+
+.search-bar button {
+  margin-left: 10px;
+  padding: 10px 15px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#map {
+  height: 500px;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+  <div id="sidebar"></div>
+
+  <main class="main">
+
+    <h2>🗺 Live Traffic Map</h2>
+
+    <div class="map-container">
+
+      <div class="search-bar">
+        <input id="search" placeholder="Search location...">
+        <button onclick="searchLocation()">Search</button>
+      </div>
+
+      <div id="map"></div>
+
+    </div>
+
+  </main>
+</div>
+
+<script>
+requireAuth("USER");
+
+// load sidebar
+fetch('/shared/user-sidebar.html')
+.then(r=>r.text())
+.then(d=>document.getElementById("sidebar").innerHTML=d);
+
+// init map
+const map = L.map('map').setView([17.3850, 78.4867], 11);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+// search
+async function searchLocation() {
+  const q = document.getElementById("search").value;
+  if (!q) return;
+
+  const res = await fetch(`/api/geocode?q=${q}`);
+  if (!res.ok) {
+    alert("Search failed");
+    return;
+  }
+
+  const data = await res.json();
+  if (!data.data || data.data.length === 0) {
+    alert("Not found");
+    return;
+  }
+
+  const loc = data.data[0];
+  const lat = parseFloat(loc.lat);
+  const lon = parseFloat(loc.lon);
+
+  map.setView([lat, lon], 14);
+
+  L.marker([lat, lon]).addTo(map)
+    .bindPopup(`📍 ${q}`)
+    .openPopup();
+}
+
+// load traffic markers
+async function loadTraffic() {
+  const res = await Traffic.getAll();
+  const data = res?.data || [];
+
+  data.forEach(t => {
+    if (!t.latitude || !t.longitude) return;
+
+    const color = t.congestionLevel === "HIGH" ? "red" : "green";
+
+    L.circleMarker([t.latitude, t.longitude], {
+      radius: 8,
+      color: color
+    }).addTo(map)
+    .bindPopup(`
+      🚗 ${t.location}<br>
+      Vehicles: ${t.vehicleCount}<br>
+      Status: ${t.congestionLevel}
+    `);
+  });
+}
+
+loadTraffic();
+</script>
+
+</body>
+</html>
