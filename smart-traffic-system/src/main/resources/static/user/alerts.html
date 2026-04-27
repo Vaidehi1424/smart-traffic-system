@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<title>User Alerts</title>
+
+<link rel="stylesheet" href="/shared/layout.css">
+<script src="/shared/api.js"></script>
+
+<style>
+
+/* MAIN */
+.main {
+  padding: 30px;
+  width: 100%;
+}
+
+/* TOPBAR (FIXED LIKE ADMIN) */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.logout-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ALERT CARD */
+.alert-card {
+  background: #1e293b;
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  transition: 0.2s;
+}
+
+.alert-card:hover {
+  background: #263449;
+}
+
+/* LOCATION */
+.alert-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #38bdf8;
+  margin-bottom: 5px;
+}
+
+/* ALERT TYPE */
+.alert-type {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+/* STATUS BADGE */
+.badge {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.active {
+  background: #ef4444;
+  color: white;
+}
+
+.resolved {
+  background: #22c55e;
+  color: white;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar"></div>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <h2>🚨 Alerts</h2>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- ALERT LIST -->
+    <div id="data"></div>
+
+  </main>
+
+</div>
+
+<script>
+
+requireAuth("USER");
+
+// load USER sidebar
+fetch('/shared/user-sidebar.html')
+.then(r => r.text())
+.then(d => document.getElementById("sidebar").innerHTML = d);
+
+// LOAD ALERTS (CARD VIEW)
+async function load(){
+  const res = await Alerts.getAll();
+  const data = res?.data || [];
+
+  document.getElementById("data").innerHTML =
+    data.map(a => `
+      <div class="alert-card">
+        
+        <div class="alert-title">📍 ${a.location}</div>
+        
+        <div class="alert-type">
+          ${a.alertType}
+        </div>
+        
+        <span class="badge ${a.status === 'ACTIVE' ? 'active' : 'resolved'}">
+          ${a.status}
+        </span>
+
+      </div>
+    `).join('');
+}
+
+load();
+
+</script>
+
+</body>
+</html>
