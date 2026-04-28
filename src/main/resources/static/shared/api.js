@@ -114,7 +114,7 @@ const Dashboard = {
 // ================= BASE URL (AUTO FIX) =================
 
 // Automatically uses Render URL in production
-const BASE_URL = window.location.origin + "/api";
+const BASE_URL = "https://smart-traffic-system-y862.onrender.com/api";
 
 // ================= STORAGE =================
 function saveToken(token) { localStorage.setItem("token", token); }

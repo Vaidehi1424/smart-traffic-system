@@ -142,7 +142,7 @@ public class AuthController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500)
-                    .body(new ApiResponse<>(500, e.getMessage(), null));
+                    .body(new ApiResponse<>(500, "ERROR: " + e.getMessage(), null));
         }
     }
 }
