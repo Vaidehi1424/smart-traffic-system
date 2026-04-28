@@ -65,23 +65,28 @@ public class AuthController {
     }
 
     // ✅ REGISTER
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<String>> register(@RequestBody User user) {
+  @PostMapping("/register")
+public ResponseEntity<ApiResponse<String>> register(@RequestBody User user) {
 
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest()
-                    .body(new ApiResponse<>(400, "Username already exists", null));
-        }
+    if (user.getUsername() == null || user.getPassword() == null || user.getEmail() == null ||
+        user.getUsername().isBlank() || user.getPassword().isBlank() || user.getEmail().isBlank()) {
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        // ✅ ALWAYS USER (no exceptions)
-        user.setRole(Role.USER);
-
-        userRepository.save(user);
-
-        return ResponseEntity.ok(new ApiResponse<>(200, "Registered successfully", null));
+        return ResponseEntity.badRequest()
+                .body(new ApiResponse<>(400, "Username, email and password required", null));
     }
+
+    if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+        return ResponseEntity.badRequest()
+                .body(new ApiResponse<>(400, "Username already exists", null));
+    }
+
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    user.setRole(Role.USER);
+
+    userRepository.save(user);
+
+    return ResponseEntity.ok(new ApiResponse<>(200, "Registered successfully", null));
+}
 }
 
 
