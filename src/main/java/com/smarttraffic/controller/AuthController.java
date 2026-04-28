@@ -118,6 +118,34 @@ public class AuthController {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
+    
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<Map<String, String>>> login(
+            @RequestBody Map<String, String> body) {
+
+        String username = body.get("username");
+        String password = body.get("password");
+
+        try {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (!passwordEncoder.matches(password, user.getPassword())) {
+                throw new RuntimeException("Invalid password");
+            }
+
+            String role = user.getRole().name();
+            String token = jwtUtil.generateToken(username, role);
+
+            return ResponseEntity.ok(new ApiResponse<>(200, "Login successful",
+                    Map.of("token", token, "role", role, "username", username)));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500)
+                    .body(new ApiResponse<>(500, "ERROR: " + e.getMessage(), null));
+        }
+    }
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<String>> register(@RequestBody User user) {
