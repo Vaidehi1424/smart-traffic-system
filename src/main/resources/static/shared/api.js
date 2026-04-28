@@ -1,4 +1,4 @@
-const BASE_URL = "/api";
+const BASE_URL = "http://localhost:8080/api";
 
 // STORAGE
 function saveToken(token) { localStorage.setItem("token", token); }
@@ -74,6 +74,14 @@ const Auth = {
 
     return res;
   },
+
+  // ✅ ADD THIS
+  register: async (username, password) => {
+    return await request("/auth/register", "POST", {
+      username,
+      password
+    });
+  }
 };
 
 // APIs
@@ -100,3 +108,4 @@ const Alerts = {
 const Dashboard = {
   getStats: () => request("/dashboard/stats"),
 };
+

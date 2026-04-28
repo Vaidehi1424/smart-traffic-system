@@ -83,3 +83,6 @@ public class AuthController {
         return ResponseEntity.ok(new ApiResponse<>(200, "Registered successfully", null));
     }
 }
+
+
+
