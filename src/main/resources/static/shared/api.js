@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080/api";
+const BASE_URL = "https://smart-traffic-system-y862.onrender.com";
 
 // STORAGE
 function saveToken(token) { localStorage.setItem("token", token); }
